@@ -1,0 +1,82 @@
+﻿@page "/guidgen"
+
+@using System.Timers
+
+@inject IJSRuntime JSRuntime
+
+<h1 class="display-4">GUIDGen</h1>
+<p class="lead">
+    GUID (Globally Unique Identifier 全局唯一标识符) 是微软对 DCE (Distributed Computing Environment) UUID (Universally Unique Identifier) 的一种实现。
+</p>
+<hr />
+
+<div>
+    <button type="button" class="btn btn-outline-dark" @onclick="Generate">
+        <ion-icon name="flash-outline"></ion-icon>
+        生成
+    </button>
+</div>
+
+<div class="row mt-3">
+    <div class="col col-md-12 col-lg-8 col-xl-6">
+        <div class="list-group">
+            @foreach (var guid in guidList)
+            {
+                <button type="button"
+                        class="list-group-item list-group-item-action text-monospace can-copied"
+                        data-clipboard-text="@guid"
+                        @onclick="@(e => OnGuidSelected(guid))">
+
+                    @guid
+
+                    <span class="float-right">
+                        @if (selectedGuid == guid)
+                        {
+                            <span class="badge badge-secondary">已复制</span>
+                        }
+                        else
+                        {
+                            <ion-icon name="copy-outline"></ion-icon>
+                        }
+                    </span>
+                </button>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private Timer timer;
+
+    private List<string> guidList = new List<string>();
+    private string selectedGuid = null;
+
+    private void Generate()
+    {
+        guidList.Insert(0, Guid.NewGuid().ToString());
+    }
+
+    private void OnGuidSelected(string guid)
+    {
+        selectedGuid = guid;
+
+        timer.Stop();
+        timer.Start();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await JSRuntime.InvokeVoidAsync("initClipboard");
+    }
+
+    protected override void OnInitialized()
+    {
+        timer = new Timer(1000);
+        timer.Elapsed += (sender, e) =>
+        {
+            selectedGuid = null;
+            StateHasChanged();
+        };
+        timer.AutoReset = false;
+    }
+}

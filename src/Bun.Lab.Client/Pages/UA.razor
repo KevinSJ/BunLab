@@ -1,0 +1,66 @@
+﻿@page "/ua"
+
+@using Bun.Lab.Client.Models.LabLists
+
+@inject IJSRuntime JSRuntime
+
+<div id="UAViewer">
+
+    <h1 class="display-4">UA Viewer</h1>
+    <hr />
+
+    <LabList List="properties" />
+
+</div>
+
+@code {
+    private List<LabListItem> properties = new List<LabListItem>
+{
+        new LabListItem{
+            Name = "userAgent",
+            Url = "https://developer.mozilla.org/docs/Web/API/NavigatorID/userAgent"
+        },
+        new LabListItem{
+            Name = "appCodeName",
+            Url = "https://developer.mozilla.org/docs/Web/API/NavigatorID/appCodeName"
+        },
+        new LabListItem{
+            Name = "appName",
+            Url = "https://developer.mozilla.org/docs/Web/API/NavigatorID/appName"
+        },
+        new LabListItem{
+            Name = "cookieEnabled",
+            Url = "https://developer.mozilla.org/docs/Web/API/Navigator/cookieEnabled"
+        },
+        new LabListItem{
+            Name = "language",
+            Url = "https://developer.mozilla.org/docs/Web/API/NavigatorLanguage/language"
+        }
+    };
+
+    private async Task<string> GetNavigatorProperty(string propertyName)
+    {
+        return await JSRuntime.InvokeAsync<string>("getNavigatorProperty", propertyName);
+    }
+
+    private async Task Init()
+    {
+        foreach (var p in properties)
+        {
+            p.UrlTitle = "前往 MDN 了解更多";
+            p.Value = await GetNavigatorProperty(p.Name);
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Init();
+        await JSRuntime.InvokeVoidAsync("initClipboard");
+    }
+}
+
+<style>
+    #UAViewer .navigator-item ion-icon {
+        font-size: 16px;
+    }
+</style>
